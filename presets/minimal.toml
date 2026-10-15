@@ -1,0 +1,15 @@
+# Preset: minimal
+# The shortest useful status line. Fits comfortably in an 80-column terminal
+# and in split panes.
+#
+# Rendered as:
+#   GPT-6.1-Sol default · Context 62% left · 5h 88% left
+
+[tui]
+status_line = [
+  "model-with-reasoning",
+  "context-remaining",
+  "five-hour-limit",
+]
+status_line_use_colors = true
+terminal_title = ["spinner", "project", "context-remaining"]

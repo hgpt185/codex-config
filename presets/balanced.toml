@@ -1,0 +1,20 @@
+# Preset: balanced  (default)
+# Model, location, git context, context window usage, and both plan limits.
+#
+# Rendered as:
+#   GPT-6.1-Sol default · main · ~/Projects/my-app · 272k window ·
+#   Context 62% left · 5h 88% left · weekly 98% left · 128k used
+
+[tui]
+status_line = [
+  "model-with-reasoning",
+  "git-branch",
+  "current-dir",
+  "context-window-size",
+  "context-remaining",
+  "five-hour-limit",
+  "weekly-limit",
+  "used-tokens",
+]
+status_line_use_colors = true
+terminal_title = ["spinner", "project", "model-with-reasoning", "context-remaining"]

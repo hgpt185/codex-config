@@ -1,0 +1,31 @@
+name: verify
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check install.sh matches presets/*.toml
+        run: ./scripts/verify-sync.sh
+
+      # The installer warns "codex is not on your PATH" on CI, which is
+      # expected — these checks must not depend on Codex being installed.
+      - name: Shellcheck install.sh
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -qq shellcheck
+          shellcheck -s bash install.sh
+
+      - name: Dry-run every preset
+        run: |
+          for p in minimal balanced verbose; do
+            echo "::group::$p"
+            ./install.sh --dry-run --preset "$p"
+            echo "::endgroup::"
+          done

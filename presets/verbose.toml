@@ -1,0 +1,31 @@
+# Preset: verbose
+# Everything useful, including safety posture and live task progress.
+#
+# Requires a fairly wide terminal (120+ columns) or the middle will be elided.
+# The `permissions` and `approval-mode` items are a good habit if you let Codex
+# run commands — you always know what it is allowed to do.
+
+[tui]
+status_line = [
+  "status",                 # Ready / Working / Thinking
+  "model-with-reasoning",
+  "reasoning",
+  "fast-mode",
+  "current-dir",
+  "git-branch",
+  "branch-changes",         # +12 -3 vs default branch
+  "pull-request-number",    # PR #123
+  "context-window-size",
+  "context-remaining",
+  "five-hour-limit",
+  "weekly-limit",
+  "used-tokens",
+  "total-input-tokens",
+  "total-output-tokens",
+  "permissions",
+  "approval-mode",
+  "task-progress",
+  "codex-version",
+]
+status_line_use_colors = true
+terminal_title = ["spinner", "project", "model-with-reasoning", "status", "context-remaining"]

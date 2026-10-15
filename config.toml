@@ -1,0 +1,40 @@
+# Codex CLI configuration — portable template
+#
+# This file contains ONLY portable settings. It is safe to share and works
+# on macOS, Linux, and WSL without any machine-specific paths.
+#
+# Install with:  ./install.sh
+# Or merge manually into ~/.codex/config.toml (see README.md).
+
+[tui]
+
+# ---------------------------------------------------------------- status line
+# The footer bar at the bottom of the interactive TUI.
+#
+# Items render left-to-right, joined by " · ". Any item whose data is not
+# available is skipped silently — e.g. `git-branch` disappears outside a git
+# repo, and the limit items stay hidden until the API reports usage headers.
+#
+# NOTE: on narrow terminals the line is truncated from the middle. If you work
+# in split panes, remove `current-dir` first — it is the widest item.
+status_line = [
+  "model-with-reasoning", # e.g. "GPT-6.1-Sol default"
+  "git-branch",           # current git branch
+  "current-dir",          # shortened working directory
+  "context-window-size",  # e.g. "272k window"
+  "context-remaining",    # e.g. "Context 62% left"
+  "five-hour-limit",      # primary usage limit,   e.g. "5h 88% left"
+  "weekly-limit",         # secondary usage limit, e.g. "weekly 98% left"
+  "used-tokens",          # tokens used this session, e.g. "128k used"
+]
+
+# Render the status line with theme colors instead of plain text.
+status_line_use_colors = true
+
+# ------------------------------------------------------------ terminal title
+# The window / tab title. Codex writes this via OSC 0.
+# Default is ["spinner", "project"].
+#
+# Useful if you run several Codex tabs: the title tells you at a glance which
+# one is burning your 5h limit and how much context is left.
+terminal_title = ["spinner", "project", "model-with-reasoning", "context-remaining"]
