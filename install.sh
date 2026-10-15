@@ -16,8 +16,12 @@
 # The presets embedded below are the single source of truth for the installer.
 # They mirror ./config.toml and ./presets/*.toml, which exist for people who
 # prefer to install by hand. `./scripts/verify-sync.sh` checks that they match.
+#
+# POSIX sh compatible on purpose: `curl … | sh` is how most people will run
+# this, and /bin/sh is dash on Debian/Ubuntu and bash in POSIX mode on macOS.
+# Don't introduce bashisms (arrays, `<<<`, process substitution, $'…').
 
-set -euo pipefail
+set -eu
 
 REPO_URL="https://github.com/hgpt185/codex-config"
 
@@ -29,8 +33,9 @@ CODEX_HOME_DIR="${CODEX_HOME:-$HOME/.codex}"
 # --- output helpers -------------------------------------------------------
 
 if [ -t 1 ]; then
-  BOLD=$'\033[1m'; DIM=$'\033[2m'; GREEN=$'\033[32m'
-  YELLOW=$'\033[33m'; RED=$'\033[31m'; RESET=$'\033[0m'
+  BOLD="$(printf '\033[1m')"; DIM="$(printf '\033[2m')"
+  GREEN="$(printf '\033[32m')"; YELLOW="$(printf '\033[33m')"
+  RED="$(printf '\033[31m')"; RESET="$(printf '\033[0m')"
 else
   BOLD=""; DIM=""; GREEN=""; YELLOW=""; RED=""; RESET=""
 fi
@@ -191,8 +196,7 @@ BLOCK_END="# <<< codex-config managed block"
 validate_preset_items() {
   # Warn about item IDs that look wrong. Codex silently ignores unknown status
   # line items, so a typo just makes the item disappear with no error.
-  local body="$1"
-  local known
+  body="$1"
   known="model-name model-with-reasoning reasoning current-dir project-name \
 hostname git-branch pull-request-number branch-changes status run-state \
 permissions approval-mode approval context-remaining context-used \
@@ -201,18 +205,21 @@ total-input-tokens total-output-tokens thread-credits estimated-thread-cost \
 thread-id session-id fast-mode daybreak raw-output thread-name thread-title \
 workspace-headline task-progress app-name project project-root thread"
 
-  local warned=0 item
-  while IFS= read -r item; do
-    [ -z "$item" ] && continue
+  # Strip comments first: a comment like `# e.g. "GPT-6.1-Sol"` contains quotes
+  # and would otherwise be mistaken for an item identifier.
+  items="$(printf '%s\n' "$body" \
+    | sed 's/[[:space:]]*#.*$//' \
+    | sed -n '/^[[:space:]]*status_line[[:space:]]*=/,/]/p' \
+    | grep -o '"[^"]*"' \
+    | tr -d '"' || true)"
+
+  warned=0
+  for item in $items; do
     case " $known " in
       *" $item "*) ;;
       *) warn "Unknown status line item '$item' — Codex will ignore it."; warned=1 ;;
     esac
-  done < <(printf '%s\n' "$body" \
-           | sed 's/[[:space:]]*#.*$//' \
-           | sed -n '/^[[:space:]]*status_line[[:space:]]*=/,/]/p' \
-           | grep -o '"[^"]*"' \
-           | tr -d '"' || true)
+  done
 
   return "$warned"
 }
@@ -225,7 +232,6 @@ check_codex_installed() {
     return 0
   fi
 
-  local version
   version="$(codex --version 2>/dev/null | awk '{print $NF}' || true)"
   [ -n "$version" ] && ok "Found codex $version"
 
@@ -319,9 +325,14 @@ fi
   printf '%s\n' "$BLOCK_END"
 } >> "$TMP"
 
-# keep the destination's original permissions (config.toml is often 0600)
+# Keep the destination's original permissions (config.toml is often 0600).
+#
+# Do NOT feed `ls -l` output to chmod: BSD chmod reads a leading "-" as a
+# symbolic mode and silently turns "-rw-------" into 000. Get octal perms via
+# stat instead — `-f %Lp` on BSD/macOS, `-c %a` on GNU.
 if [ -f "$CONFIG_FILE" ]; then
-  chmod --reference="$CONFIG_FILE" "$TMP" 2>/dev/null || chmod 600 "$TMP"
+  mode="$(stat -f %Lp "$CONFIG_FILE" 2>/dev/null || stat -c %a "$CONFIG_FILE" 2>/dev/null || echo 600)"
+  chmod "$mode" "$TMP" 2>/dev/null || chmod 600 "$TMP"
 else
   chmod 600 "$TMP"
 fi
