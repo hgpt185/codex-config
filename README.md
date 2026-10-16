@@ -190,6 +190,19 @@ them.
 
 ## Troubleshooting
 
+**`sh: line NNN: syntax error`.**
+`raw.githubusercontent.com` caches aggressively, so right after a release you
+can be served the *previous* version of `install.sh`. It catches up in a few
+minutes. To bypass it entirely:
+
+```bash
+git clone https://github.com/hgpt185/codex-config.git
+cd codex-config && ./install.sh
+```
+
+Or pin to a known-good commit:
+`https://raw.githubusercontent.com/hgpt185/codex-config/<commit-sha>/install.sh`
+
 **The footer looks unchanged.**
 Restart Codex — the config is read at startup. Inside a session, `/statusline`
 shows a live preview so you can confirm the items are wired up.
