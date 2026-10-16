@@ -20,7 +20,9 @@ jobs:
         run: |
           sudo apt-get update -qq
           sudo apt-get install -qq shellcheck
-          shellcheck -s bash install.sh
+          # -s sh, not -s bash: the script is deliberately POSIX so that
+          # `curl … | sh` works under dash on Debian/Ubuntu.
+          shellcheck -s sh install.sh
 
       - name: Dry-run every preset
         run: |

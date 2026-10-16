@@ -318,8 +318,18 @@ TMP="$(mktemp)"
 if [ -n "$EXISTING" ]; then
   strip_managed_config < "$EXISTING" > "$TMP"
 fi
+
+# Decide on the separating blank line *before* opening the append redirect.
+# Testing -s on "$TMP" inside the block that appends to it would be a
+# read/write race on one file (shellcheck SC2094).
+sep=''
+if [ -s "$TMP" ]; then
+  sep='\n'
+fi
+
+# One redirect for the whole block (SC2129); %b expands the separator escape.
 {
-  [ -s "$TMP" ] && printf '\n'
+  printf '%b' "$sep"
   printf '%s\n' "$BLOCK_BEGIN"
   printf '%s\n' "$BODY"
   printf '%s\n' "$BLOCK_END"
